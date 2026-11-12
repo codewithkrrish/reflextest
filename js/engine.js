@@ -16,7 +16,7 @@ export const ROUND_OPTIONS = [3, 5, 10];
 export const DEFAULT_ROUNDS = 5;
 export const DELAY_MIN_MS = 1500;
 export const DELAY_MAX_MS = 5000;
-export const SITE_URL = "https://reflextest-app.vercel.app/";
+export const SITE_URL = "https://reflextest.vercel.app/";
 
 /* Rank tiers, ranked on the session average. Boundaries are exclusive
  * upper bounds: a 179 ms average is Pro Gamer, 180 ms is Lightning. */
