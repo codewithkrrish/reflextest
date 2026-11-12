@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReflexTest — Reaction Time Test</title>
+  <meta name="description" content="ReflexTest measures your reaction time in 3, 5 or 10 rounds. Wait for green, click as fast as you can, and see your best, average and rank. Everything runs in your browser — nothing is uploaded.">
+  <link rel="canonical" href="https://reflextest-app.vercel.app/">
+  <meta name="theme-color" content="#0B0B0F">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="ReflexTest — Reaction Time Test">
+  <meta property="og:description" content="Wait for green, click as fast as you can. Best of 5 rounds, with your best, average, median and rank — free, in your browser.">
+  <meta property="og:url" content="https://reflextest-app.vercel.app/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ReflexTest — Reaction Time Test">
+  <meta name="twitter:description" content="Wait for green, click as fast as you can. Best of 5 rounds, with your best, average, median and rank — free, in your browser.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>ReflexTest</h1>
+      <p class="tagline">How fast are your reflexes? Wait for green, click as fast as you can, and find out — in 3, 5 or 10 rounds.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel controls" aria-label="Test settings">
+      <div class="field">
+        <span class="field-label" id="rounds-label">Rounds</span>
+        <div id="rounds-pills" class="pills" role="group" aria-labelledby="rounds-label">
+          <button type="button" class="pill" data-rounds="3">3 rounds</button>
+          <button type="button" class="pill active" data-rounds="5">5 rounds</button>
+          <button type="button" class="pill" data-rounds="10">10 rounds</button>
+        </div>
+        <p class="hint">Changing the round count starts a fresh test. Best of 5 is the default.</p>
+      </div>
+
+      <div class="field">
+        <button id="test-area" type="button" class="test-area state-idle" data-state="idle" aria-label="Ready? Click the panel — or press Space — to start.">
+          <span id="test-title" class="test-title">Ready?</span>
+          <span id="test-time" class="test-time"></span>
+          <span id="test-message" class="test-message">Click the panel — or press Space — to start.</span>
+        </button>
+        <p class="hint">Click, tap, or press Space. Clicking while the panel is red is a false start and the round does not count.</p>
+      </div>
+
+      <div class="progress-row">
+        <p id="round-status" class="round-status">Round 0 of 5</p>
+        <p id="false-start-count" class="false-start-count">No false starts</p>
+      </div>
+      <ol id="round-times" class="round-times" aria-label="Round times"></ol>
+
+      <div class="actions-row">
+        <button id="restart-btn" type="button" class="btn">Restart test</button>
+      </div>
+
+      <p id="status-line" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section id="results-section" class="panel results" aria-label="Your results" hidden>
+      <div class="results-head">
+        <h2>Your results</h2>
+        <p id="result-rounds" class="count"></p>
+      </div>
+      <p id="pb-callout" class="pb-callout" hidden></p>
+      <dl class="stats-grid">
+        <div class="stat">
+          <dt>Best</dt>
+          <dd id="result-best">—</dd>
+        </div>
+        <div class="stat">
+          <dt>Average</dt>
+          <dd id="result-average">—</dd>
+        </div>
+        <div class="stat">
+          <dt>Median</dt>
+          <dd id="result-median">—</dd>
+        </div>
+        <div class="stat">
+          <dt>Consistency (spread)</dt>
+          <dd id="result-spread">—</dd>
+        </div>
+      </dl>
+      <p class="rank-line">Rank: <strong id="result-rank">—</strong> <span id="result-rank-blurb" class="muted"></span></p>
+
+      <h3 class="card-heading">Share your result</h3>
+      <canvas id="result-card-canvas" width="1080" height="1080" aria-label="Your ReflexTest result card"></canvas>
+      <p id="card-status" class="note"></p>
+      <div class="actions-row">
+        <button id="download-card-btn" type="button" class="btn primary">Download result card (PNG)</button>
+        <button id="copy-result-btn" type="button" class="btn">Copy result text</button>
+        <button id="copy-share-btn" type="button" class="btn">Copy challenge text</button>
+        <button id="new-test-btn" type="button" class="btn">New test</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Personal best">
+      <h2>Personal best</h2>
+      <dl class="stats-grid">
+        <div class="stat">
+          <dt>Best single time</dt>
+          <dd id="pb-best">No tests yet</dd>
+        </div>
+        <div class="stat">
+          <dt>Best average</dt>
+          <dd id="pb-average">No tests yet</dd>
+        </div>
+      </dl>
+      <p id="pb-note" class="note">Finish a test and your best times will show up here.</p>
+    </section>
+
+    <section id="history-section" class="results" aria-label="Past tests" hidden>
+      <div class="results-head">
+        <h2>Past tests</h2>
+        <button id="clear-history-btn" type="button" class="btn small" hidden>Clear history</button>
+      </div>
+      <ul id="history-list" class="history-list"></ul>
+    </section>
+
+    <section class="panel about" aria-label="How it works">
+      <h2>How it works</h2>
+      <p>Each round starts on a red screen. After a random wait of 1.5 to 5 seconds the screen turns green — click or tap as fast as you can. Your time is measured from the moment the screen turns green to the moment you click. Clicking while the screen is still red is a false start: the round is void and you try it again.</p>
+      <p>Your rank comes from your average across all rounds: under 180 ms is Pro Gamer, under 220 ms is Lightning, under 270 ms is Sharp, under 320 ms is Average, under 400 ms is Steady, and anything slower is Warming Up. Your best times are saved on this device only, so you can see whether you are improving.</p>
+      <p>Honest limits: results vary by device, screen and input. A phone touchscreen, a wireless mouse and a gaming monitor will not give the same numbers, and this test measures your reaction plus your input latency together — it cannot separate the two. Treat the number as a fun benchmark, not a lab measurement.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Built by krrish · <a href="https://github.com/codewithkrrish/reflextest">github.com/codewithkrrish/reflextest</a> · <a href="https://www.instagram.com/krrishx.ai">Instagram</a></p>
+      <p class="privacy">All timing runs in your browser, nothing leaves your device.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
